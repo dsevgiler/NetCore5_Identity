@@ -1,8 +1,12 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using NetCore5_Identity.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,8 +18,24 @@ namespace NetCore5_Identity
     {
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+
+        private IConfiguration _configuration { get; }
+
+        public Startup(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<AppIdentityDbContext>(opts=>
+            {
+                opts.UseSqlServer(_configuration["ConnectionStrings:DefaultConnectionString"]);
+            });
+
+            services.AddIdentity<AppUser, AppRole>().AddEntityFrameworkStores<AppIdentityDbContext>();
+
+
             services.AddMvc(); // 
         }
 
@@ -25,6 +45,9 @@ namespace NetCore5_Identity
             app.UseDeveloperExceptionPage(); // hatalar için açýklayýcý bilgiler middleware i
             app.UseStatusCodePages(); // Hatanýn nerde olduðunu gösteren sayfa ekliyor
             app.UseStaticFiles(); // cs js vs. ekliyor
+            
+            app.UseAuthentication();
+
 
             app.UseRouting();
             app.UseEndpoints(endpoints =>
